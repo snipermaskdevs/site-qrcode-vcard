@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de QR Code vCard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            text-align: center;
+            background-color: #f4f4f9;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        form input, form button {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #qrCode {
+            margin-top: 20px;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        #qrCode.show {
+            opacity: 1;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .download-btn {
+            background-color: #555;
+            border: none;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .download-btn:hover {
+            background-color: #666;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+        .success {
+            color: green;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gerador de QR Code vCard</h1>
+    </header>
+    <main>
+        <form id="vcardForm">
+            <label for="name">Nome Completo:</label>
+            <input type="text" id="name" name="name" required><br>
+
+            <label for="phone">Telefone:</label>
+            <input type="tel" id="phone" name="phone" required><br>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email"><br>
+
+            <label for="street">Rua:</label>
+            <input type="text" id="street" name="street"><br>
+
+            <label for="city">Cidade:</label>
+            <input type="text" id="city" name="city"><br>
+
+            <label for="state">Estado:</label>
+            <input type="text" id="state" name="state"><br>
+
+            <label for="zipcode">CEP:</label>
+            <input type="text" id="zipcode" name="zipcode"><br>
+
+            <label for="country">País:</label>
+            <input type="text" id="country" name="country"><br>
+
+            <label for="website">Website:</label>
+            <input type="url" id="website" name="website"><br>
+
+            <button type="submit">Gerar QR Code</button>
+        </form>
+
+        <div id="errorMessage" class="error"></div>
+        <div id="successMessage" class="success"></div>
+
+        <div id="qrCode"></div>
+        <button class="download-btn" id="downloadBtn" style="display: none;">Baixar QR Code</button>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <script>
+        document.getElementById('vcardForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const street = document.getElementById('street').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const zipcode = document.getElementById('zipcode').value;
+            const country = document.getElementById('country').value;
+            const website = document.getElementById('website').value;
+
+            // Clear previous messages
+            document.getElementById('errorMessage').innerHTML = '';
+            document.getElementById('successMessage').innerHTML = '';
+
+            // Validate required fields
+            if (!name || !phone) {
+                document.getElementById('errorMessage').innerHTML = 'Por favor, preencha todos os campos obrigatórios (Nome e Telefone).';
+                return;
+            }
+
+            let vCardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${phone}`;
+
+            if (email) vCardData += `\nEMAIL:${email}`;
+            if (street) vCardData += `\nADR;TYPE=home:;;${street}`;
+            if (city) vCardData += `;${city}`;
+            if (state) vCardData += `;${state}`;
+            if (zipcode) vCardData += `;${zipcode}`;
+            if (country) vCardData += `;${country}`;
+            if (website) vCardData += `\nURL:${website}`;
+
+            vCardData += `\nEND:VCARD`;
+
+            const qrCodeDiv = document.getElementById('qrCode');
+            qrCodeDiv.innerHTML = '';  // Clear previous QR Code
+
+            const qrcode = new QRCode(qrCodeDiv, {
+                text: vCardData,
+                width: 200,
+                height: 200,
+            });
+
+            // Show the QR Code with a smooth transition
+            qrCodeDiv.classList.add('show');
+
+            // Show the download button
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.style.display = 'inline';
+
+            // Add download functionality
+            downloadBtn.addEventListener('click', function() {
+                const canvas = qrCodeDiv.querySelector('canvas');
+                if (canvas) {
+                    const imageUrl = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = imageUrl;
+                    link.download = 'vcard-qrcode.png';
+                    link.click();
+                }
+            });
+
+            // Show success message
+            document.getElementById('successMessage').innerHTML = 'QR Code gerado com sucesso!';
+        });
+    </script>
+</body>
+</html>
